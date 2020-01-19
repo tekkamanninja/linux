@@ -11,16 +11,16 @@
 
 static int sun50i_de2_bus_probe(struct platform_device *pdev)
 {
-	struct device_node *np = pdev->dev.of_node;
+	struct device *dev = &pdev->dev;
 	int ret;
 
-	ret = sunxi_sram_claim(&pdev->dev);
-	if (ret) {
-		dev_err(&pdev->dev, "Error couldn't map SRAM to device\n");
-		return ret;
-	}
+	ret = sunxi_sram_claim(dev);
+	if (ret)
+		return dev_err_probe(dev, ret, "Error couldn't map SRAM to device\n");
 
-	of_platform_populate(np, NULL, NULL, &pdev->dev);
+	ret = devm_of_platform_populate(&pdev->dev);
+	if (ret)
+		return ret;
 
 	return 0;
 }
@@ -28,6 +28,7 @@ static int sun50i_de2_bus_probe(struct platform_device *pdev)
 static int sun50i_de2_bus_remove(struct platform_device *pdev)
 {
 	sunxi_sram_release(&pdev->dev);
+
 	return 0;
 }
 
