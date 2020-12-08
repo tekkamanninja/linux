@@ -19,24 +19,51 @@
 
 #define MAX_NAME_LEN	7
 
-#define NVMEM_MASK	0x7
-#define NVMEM_SHIFT	5
+#define SUN50I_H6_NVMEM_MASK		0x7
+#define SUN50I_H6_NVMEM_SHIFT		5
+
+struct sunxi_cpufreq_soc_data {
+	int (*efuse_xlate)(struct nvmem_cell *speedbin_nvmem);
+};
 
 static struct platform_device *cpufreq_dt_pdev, *sun50i_cpufreq_pdev;
 
+static int sun50i_h6_efuse_xlate(struct nvmem_cell *speedbin_nvmem)
+{
+	size_t len;
+	u32 *speedbin;
+	u32 efuse_value;
+
+	speedbin = nvmem_cell_read(speedbin_nvmem, &len);
+	if (IS_ERR(speedbin))
+		return PTR_ERR(speedbin);
+
+	efuse_value = (*speedbin >> SUN50I_H6_NVMEM_SHIFT) & SUN50I_H6_NVMEM_MASK;
+	kfree(speedbin);
+
+	/*
+	 * We treat unexpected efuse values as if the SoC was from
+	 * the slowest bin. Expected efuse values are 1-3, slowest
+	 * to fastest.
+	 */
+	if (efuse_value >= 1 && efuse_value <= 3)
+		return efuse_value - 1;
+	else
+		return 0;
+}
+
 /**
  * sun50i_cpufreq_get_efuse() - Determine speed grade from efuse value
- * @versions: Set to the value parsed from efuse
+ * @soc_data: pointer to sunxi_cpufreq_soc_data context
  *
- * Returns 0 if success.
+ * Returns speed grade (OPP voltage index) if successful.
  */
-static int sun50i_cpufreq_get_efuse(u32 *versions)
+static int sun50i_cpufreq_get_efuse(const struct sunxi_cpufreq_soc_data *soc_data)
 {
 	struct nvmem_cell *speedbin_nvmem;
 	struct device_node *np;
 	struct device *cpu_dev;
-	u32 *speedbin, efuse_value;
-	size_t len;
+	int speed;
 	int ret;
 
 	cpu_dev = get_cpu_device(0);
@@ -63,43 +90,33 @@ static int sun50i_cpufreq_get_efuse(u32 *versions)
 		return PTR_ERR(speedbin_nvmem);
 	}
 
-	speedbin = nvmem_cell_read(speedbin_nvmem, &len);
+	speed = soc_data->efuse_xlate(speedbin_nvmem);
 	nvmem_cell_put(speedbin_nvmem);
-	if (IS_ERR(speedbin))
-		return PTR_ERR(speedbin);
 
-	efuse_value = (*speedbin >> NVMEM_SHIFT) & NVMEM_MASK;
-
-	/*
-	 * We treat unexpected efuse values as if the SoC was from
-	 * the slowest bin. Expected efuse values are 1-3, slowest
-	 * to fastest.
-	 */
-	if (efuse_value >= 1 && efuse_value <= 3)
-		*versions = efuse_value - 1;
-	else
-		*versions = 0;
-
-	kfree(speedbin);
-	return 0;
+	return speed;
 };
 
 static int sun50i_cpufreq_nvmem_probe(struct platform_device *pdev)
 {
+	const struct of_device_id *match;
 	struct opp_table **opp_tables;
 	char name[MAX_NAME_LEN];
 	unsigned int cpu;
-	u32 speed = 0;
+	int speed = 0;
 	int ret;
+
+	match = dev_get_platdata(&pdev->dev);
+	if (!match)
+		return -EINVAL;
 
 	opp_tables = kcalloc(num_possible_cpus(), sizeof(*opp_tables),
 			     GFP_KERNEL);
 	if (!opp_tables)
 		return -ENOMEM;
 
-	ret = sun50i_cpufreq_get_efuse(&speed);
-	if (ret)
-		return ret;
+	speed = sun50i_cpufreq_get_efuse(match->data);
+	if (speed < 0)
+		return speed;
 
 	snprintf(name, MAX_NAME_LEN, "speed%d", speed);
 
@@ -163,8 +180,12 @@ static struct platform_driver sun50i_cpufreq_driver = {
 	},
 };
 
+static const struct sunxi_cpufreq_soc_data sun50i_h6_data = {
+	.efuse_xlate = sun50i_h6_efuse_xlate,
+};
+
 static const struct of_device_id sun50i_cpufreq_match_list[] = {
-	{ .compatible = "allwinner,sun50i-h6" },
+	{ .compatible = "allwinner,sun50i-h6", .data = &sun50i_h6_data },
 	{}
 };
 MODULE_DEVICE_TABLE(of, sun50i_cpufreq_match_list);
@@ -199,9 +220,8 @@ static int __init sun50i_cpufreq_init(void)
 	if (unlikely(ret < 0))
 		return ret;
 
-	sun50i_cpufreq_pdev =
-		platform_device_register_simple("sun50i-cpufreq-nvmem",
-						-1, NULL, 0);
+	sun50i_cpufreq_pdev = platform_device_register_data(NULL,
+		"sun50i-cpufreq-nvmem", -1, match, sizeof(*match));
 	ret = PTR_ERR_OR_ZERO(sun50i_cpufreq_pdev);
 	if (ret == 0)
 		return 0;
