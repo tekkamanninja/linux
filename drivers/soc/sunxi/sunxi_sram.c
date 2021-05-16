@@ -106,6 +106,7 @@ static struct device *sram_dev;
 static LIST_HEAD(claimed_sram);
 static DEFINE_SPINLOCK(sram_lock);
 static void __iomem *base;
+static struct dentry *debugfs_dir;
 
 static int sunxi_sram_show(struct seq_file *s, void *data)
 {
@@ -341,7 +342,6 @@ static struct regmap_config sunxi_sram_emac_clock_regmap = {
 
 static int sunxi_sram_probe(struct platform_device *pdev)
 {
-	struct dentry *d;
 	struct regmap *emac_clock;
 	const struct sunxi_sramc_variant *variant;
 
@@ -357,11 +357,6 @@ static int sunxi_sram_probe(struct platform_device *pdev)
 
 	of_platform_populate(pdev->dev.of_node, NULL, NULL, &pdev->dev);
 
-	d = debugfs_create_file("sram", S_IRUGO, NULL, NULL,
-				&sunxi_sram_fops);
-	if (!d)
-		return -ENOMEM;
-
 	if (variant->num_emac_clocks > 0) {
 		emac_clock = devm_regmap_init_mmio(&pdev->dev, base,
 						   &sunxi_sram_emac_clock_regmap);
@@ -369,6 +364,17 @@ static int sunxi_sram_probe(struct platform_device *pdev)
 		if (IS_ERR(emac_clock))
 			return PTR_ERR(emac_clock);
 	}
+
+	debugfs_dir = debugfs_create_dir("sunxi-sram", NULL);
+	debugfs_create_file("sram", S_IRUGO, debugfs_dir, NULL,
+			    &sunxi_sram_fops);
+
+	return 0;
+}
+
+static int sunxi_sram_remove(struct platform_device *pdev)
+{
+	debugfs_remove(debugfs_dir);
 
 	return 0;
 }
@@ -420,6 +426,7 @@ static struct platform_driver sunxi_sram_driver = {
 		.of_match_table	= sunxi_sram_dt_match,
 	},
 	.probe	= sunxi_sram_probe,
+	.remove	= sunxi_sram_remove,
 };
 module_platform_driver(sunxi_sram_driver);
 
