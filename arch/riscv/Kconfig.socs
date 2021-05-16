@@ -1,5 +1,14 @@
 menu "SoC selection"
 
+config ARCH_SUNXI
+	bool "Allwinner sunXi SoCs"
+	select SIFIVE_PLIC
+	select SUN4I_TIMER
+	select SUN5I_HSTIMER
+	select SUN20I_INTC
+	help
+	  This enables support for Allwinner sunXi SoC platforms.
+
 config SOC_MICROCHIP_POLARFIRE
 	bool "Microchip PolarFire SoCs"
 	select MCHP_CLK_MPFS
