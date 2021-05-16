@@ -18,8 +18,12 @@
 #include <linux/of_device.h>
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
+#include <linux/regulator/driver.h>
 
 #include <linux/soc/sunxi/sunxi_sram.h>
+
+#define SUNXI_SRAM_EMAC_CLOCK_REG	0x30
+#define SUNXI_SYS_LDO_CTRL_REG		0x150
 
 struct sunxi_sram_func {
 	char	*func;
@@ -293,7 +297,47 @@ int sunxi_sram_release(struct device *dev)
 }
 EXPORT_SYMBOL(sunxi_sram_release);
 
+static const struct regulator_ops sunxi_ldo_ops = {
+	.list_voltage		= regulator_list_voltage_linear,
+	.map_voltage		= regulator_map_voltage_linear,
+	.set_voltage_sel	= regulator_set_voltage_sel_regmap,
+	.get_voltage_sel	= regulator_get_voltage_sel_regmap,
+};
+
+static const struct regulator_desc sun20i_d1_ldos[] = {
+	{
+		.name		= "ldoa",
+		.supply_name	= "ldo-in",
+		.of_match	= "ldoa",
+		.regulators_node = "regulators",
+		.ops		= &sunxi_ldo_ops,
+		.type		= REGULATOR_VOLTAGE,
+		.owner		= THIS_MODULE,
+		.n_voltages	= BIT(5),
+		.min_uV		= 1600005, /* nominally 1.8 V */
+		.uV_step	= 13333,
+		.vsel_reg	= SUNXI_SYS_LDO_CTRL_REG,
+		.vsel_mask	= GENMASK(7, 0),
+	},
+	{
+		.name		= "ldob",
+		.supply_name	= "ldo-in",
+		.of_match	= "ldob",
+		.regulators_node = "regulators",
+		.ops		= &sunxi_ldo_ops,
+		.type		= REGULATOR_VOLTAGE,
+		.owner		= THIS_MODULE,
+		.n_voltages	= BIT(6),
+		.min_uV		= 1166675, /* nominally 1.5 V */
+		.uV_step	= 13333,
+		.vsel_reg	= SUNXI_SYS_LDO_CTRL_REG,
+		.vsel_mask	= GENMASK(15, 8),
+	},
+};
+
 struct sunxi_sramc_variant {
+	const struct regulator_desc *ldos;
+	int num_ldos;
 	int num_emac_clocks;
 };
 
@@ -305,6 +349,12 @@ static const struct sunxi_sramc_variant sun8i_h3_sramc_variant = {
 	.num_emac_clocks = 1,
 };
 
+static const struct sunxi_sramc_variant sun20i_d1_sramc_variant = {
+	.ldos = sun20i_d1_ldos,
+	.num_ldos = ARRAY_SIZE(sun20i_d1_ldos),
+	.num_emac_clocks = 1,
+};
+
 static const struct sunxi_sramc_variant sun50i_a64_sramc_variant = {
 	.num_emac_clocks = 1,
 };
@@ -313,7 +363,6 @@ static const struct sunxi_sramc_variant sun50i_h616_sramc_variant = {
 	.num_emac_clocks = 2,
 };
 
-#define SUNXI_SRAM_EMAC_CLOCK_REG	0x30
 static bool sunxi_sram_regmap_accessible_reg(struct device *dev,
 					     unsigned int reg)
 {
@@ -321,6 +370,8 @@ static bool sunxi_sram_regmap_accessible_reg(struct device *dev,
 
 	variant = of_device_get_match_data(dev);
 
+	if (reg == SUNXI_SYS_LDO_CTRL_REG)
+		return true;
 	if (reg < SUNXI_SRAM_EMAC_CLOCK_REG)
 		return false;
 	if (reg > SUNXI_SRAM_EMAC_CLOCK_REG + variant->num_emac_clocks * 4)
@@ -334,7 +385,7 @@ static struct regmap_config sunxi_sram_emac_clock_regmap = {
 	.val_bits       = 32,
 	.reg_stride     = 4,
 	/* last defined register */
-	.max_register   = SUNXI_SRAM_EMAC_CLOCK_REG + 4,
+	.max_register   = SUNXI_SYS_LDO_CTRL_REG,
 	/* other devices have no business accessing other registers */
 	.readable_reg	= sunxi_sram_regmap_accessible_reg,
 	.writeable_reg	= sunxi_sram_regmap_accessible_reg,
@@ -356,12 +407,26 @@ static int sunxi_sram_probe(struct platform_device *pdev)
 	if (IS_ERR(base))
 		return PTR_ERR(base);
 
-	if (variant->num_emac_clocks > 0) {
+	if (variant->num_ldos || variant->num_emac_clocks) {
 		emac_clock = devm_regmap_init_mmio(&pdev->dev, base,
 						   &sunxi_sram_emac_clock_regmap);
 
 		if (IS_ERR(emac_clock))
 			return PTR_ERR(emac_clock);
+	}
+
+	if (variant->num_ldos) {
+		struct regulator_config config = { .dev = &pdev->dev };
+		struct regulator_dev *rdev;
+		int i;
+
+		for (i = 0; i < variant->num_ldos; ++i) {
+			const struct regulator_desc *desc = &variant->ldos[i];
+
+			rdev = devm_regulator_register(&pdev->dev, desc, &config);
+			if (IS_ERR(rdev))
+				return PTR_ERR(rdev);
+		}
 	}
 
 	ret = devm_of_platform_populate(&pdev->dev);
