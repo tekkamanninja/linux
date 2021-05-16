@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-only
-if ARCH_SUNXI
+if ARCH_SUNXI || SOC_SUNXI
 
 config PINCTRL_SUNXI
 	bool
@@ -82,6 +82,11 @@ config PINCTRL_SUN9I_A80_R
 	bool "Support for the Allwinner A80 R-PIO"
 	default MACH_SUN9I
 	depends on RESET_CONTROLLER
+	select PINCTRL_SUNXI
+
+config PINCTRL_SUN20I_D1
+	bool "Support for the Allwinner D1 PIO"
+	default RISCV && SOC_SUNXI
 	select PINCTRL_SUNXI
 
 config PINCTRL_SUN50I_A64
