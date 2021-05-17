@@ -1,0 +1,70 @@
+# SPDX-License-Identifier: GPL-2.0
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/mailbox/allwinner,sun20i-d1-msgbox.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Allwinner sunxi Message Box v2
+
+maintainers:
+  - Samuel Holland <samuel@sholland.org>
+
+properties:
+  compatible:
+    oneOf:
+      - const: allwinner,sun20i-d1-msgbox
+
+  reg:
+    maxItems: 1
+
+  clocks:
+    maxItems: 1
+    description: bus clock
+
+  resets:
+    maxItems: 1
+    description: bus reset
+
+  interrupts:
+    items:
+      - description: receive interrupt
+      - description: transmit interrupt
+
+  interrupt-names:
+    items:
+      - const: "rx"
+      - const: "tx"
+
+  '#mbox-cells':
+    const: 2
+    description: first cell is the user/channel number, second is direction
+
+required:
+  - compatible
+  - reg
+  - clocks
+  - resets
+  - interrupts
+  - interrupt-names
+  - '#mbox-cells'
+
+additionalProperties: false
+
+examples:
+  - |
+    #include <dt-bindings/clock/sun20i-d1-ccu.h>
+    #include <dt-bindings/interrupt-controller/irq.h>
+    #include <dt-bindings/reset/sun20i-d1-ccu.h>
+
+    msgbox: mailbox@3003000 {
+	    compatible = "allwinner,sun20i-d1-msgbox";
+	    reg = <0x3003000 0x1000>;
+	    clocks = <&ccu CLK_BUS_MSGBOX0>;
+	    resets = <&ccu RST_BUS_MSGBOX0>;
+	    interrupts = <101 IRQ_TYPE_LEVEL_HIGH>,
+			 <102 IRQ_TYPE_LEVEL_HIGH>;
+	    interrupt-names = "rx", "tx";
+	    #mbox-cells = <2>;
+    };
+
+...
