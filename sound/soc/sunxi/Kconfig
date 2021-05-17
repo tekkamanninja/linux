@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 menu "Allwinner SoC Audio support"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 
 config SND_SUN4I_CODEC
 	tristate "Allwinner A10 Codec Support"

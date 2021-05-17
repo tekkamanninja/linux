@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0
 config VIDEO_SUNXI
 	bool "Allwinner sunXi family Video Devices"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	help
 	  If you have an Allwinner SoC based on the sunXi family, say Y.
 

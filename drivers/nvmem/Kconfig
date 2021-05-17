@@ -172,7 +172,7 @@ config NVMEM_STM32_ROMEM
 
 config NVMEM_SUNXI_SID
 	tristate "Allwinner SoCs SID support"
-	depends on ARCH_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	help
 	  This is a driver for the 'security ID' available on various Allwinner
 	  devices.

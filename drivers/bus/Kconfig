@@ -155,8 +155,8 @@ config SIMPLE_PM_BUS
 
 config SUN50I_DE2_BUS
 	bool "Allwinner A64 DE2 Bus Driver"
-	  default ARM64
-	  depends on ARCH_SUNXI
+	  default (ARM64 && ARCH_SUNXI) || SOC_SUNXI
+	  depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	  select SUNXI_SRAM
 	  help
 	  Say y here to enable support for Allwinner A64 DE2 bus driver. It's

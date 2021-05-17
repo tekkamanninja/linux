@@ -421,7 +421,7 @@ config RC_ST
 
 config IR_SUNXI
 	tristate "SUNXI IR remote control"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	help
 	   Say Y if you want to use sunXi internal IR Controller
 

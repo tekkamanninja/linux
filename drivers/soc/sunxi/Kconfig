@@ -12,7 +12,7 @@ config SUNXI_MBUS
 
 config SUNXI_SRAM
 	bool
-	default ARCH_SUNXI
+	default ARCH_SUNXI || SOC_SUNXI
 	select REGMAP_MMIO
 	help
 	  Say y here to enable the SRAM controller support. This

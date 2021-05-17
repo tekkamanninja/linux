@@ -46,7 +46,7 @@ config HWSPINLOCK_STM32
 
 config HWSPINLOCK_SUN6I
 	tristate "SUN6I Hardware Spinlock device"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	help
 	  Say y here to support the SUN6I Hardware Spinlock device which can be
 	  found in most of the sun6i compatible Allwinner SoCs.

@@ -63,7 +63,7 @@ comment "Platform Glue Layer"
 
 config USB_MUSB_SUNXI
 	tristate "Allwinner (sunxi)"
-	depends on ARCH_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	depends on NOP_USB_XCEIV
 	depends on PHY_SUN4I_USB
 	depends on EXTCON

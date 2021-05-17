@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 config SUNXI_CCU
 	bool "Clock support for Allwinner SoCs"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	default ARCH_SUNXI || SOC_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	select RESET_CONTROLLER
-	default ARCH_SUNXI
 
 if SUNXI_CCU
 

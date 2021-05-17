@@ -199,8 +199,8 @@ config DWMAC_SUNXI
 
 config DWMAC_SUN8I
 	tristate "Allwinner sun8i GMAC support"
-	default ARCH_SUNXI
-	depends on OF && (ARCH_SUNXI || COMPILE_TEST)
+	default ARCH_SUNXI || SOC_SUNXI
+	depends on OF && (ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST)
 	select MDIO_BUS_MUX
 	help
 	  Support for Allwinner H3 A83T A64 EMAC ethernet controllers.

@@ -56,7 +56,7 @@ config MFD_SUN4I_GPADC
 	select MFD_CORE
 	select REGMAP_MMIO
 	select REGMAP_IRQ
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	depends on !TOUCHSCREEN_SUN4I
 	help
 	  Select this to get support for Allwinner SoCs (A10, A13 and A31) ADC.

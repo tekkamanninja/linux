@@ -633,7 +633,7 @@ config RN5T618_WATCHDOG
 
 config SUNXI_WATCHDOG
 	tristate "Allwinner SoCs watchdog support"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	select WATCHDOG_CORE
 	help
 	  Say Y here to include support for the watchdog timer

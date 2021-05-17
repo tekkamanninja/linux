@@ -632,7 +632,7 @@ config KEYBOARD_STMPE
 
 config KEYBOARD_SUN4I_LRADC
 	tristate "Allwinner sun4i low res adc attached tablet keys support"
-	depends on ARCH_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	help
 	  This selects support for the Allwinner low res adc attached tablet
 	  keys found on Allwinner sunxi SoCs.

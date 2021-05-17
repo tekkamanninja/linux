@@ -1,13 +1,12 @@
 config CRYPTO_DEV_ALLWINNER
 	bool "Support for Allwinner cryptographic offloader"
-	depends on ARCH_SUNXI || COMPILE_TEST
-	default y if ARCH_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
+	default y if ARCH_SUNXI || SOC_SUNXI
 	help
 	  Say Y here to get to see options for Allwinner hardware crypto devices
 
 config CRYPTO_DEV_SUN4I_SS
 	tristate "Support for Allwinner Security System cryptographic accelerator"
-	depends on ARCH_SUNXI
 	depends on PM
 	depends on CRYPTO_DEV_ALLWINNER
 	select CRYPTO_MD5

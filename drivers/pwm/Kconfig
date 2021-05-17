@@ -561,7 +561,7 @@ config PWM_STMPE
 
 config PWM_SUN4I
 	tristate "Allwinner PWM support"
-	depends on ARCH_SUNXI || COMPILE_TEST
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
 	depends on HAS_IOMEM && COMMON_CLK
 	help
 	  Generic PWM framework driver for Allwinner SoCs.
