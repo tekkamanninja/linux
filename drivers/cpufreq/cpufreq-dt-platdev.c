@@ -101,6 +101,7 @@ static const struct of_device_id allowlist[] __initconst = {
  * platforms using "operating-points-v2" property.
  */
 static const struct of_device_id blocklist[] __initconst = {
+	{ .compatible = "allwinner,sun20i-d1", },
 	{ .compatible = "allwinner,sun50i-a100", },
 	{ .compatible = "allwinner,sun50i-h6", },
 

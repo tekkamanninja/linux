@@ -31,6 +31,11 @@ struct sunxi_cpufreq_soc_data {
 
 static struct platform_device *cpufreq_dt_pdev, *sun50i_cpufreq_pdev;
 
+static int sun20i_d1_efuse_xlate(struct nvmem_cell *speedbin_nvmem)
+{
+	return 0;
+}
+
 static int sun50i_a100_efuse_xlate(struct nvmem_cell *speedbin_nvmem)
 {
 	size_t len;
@@ -206,6 +211,10 @@ static struct platform_driver sun50i_cpufreq_driver = {
 	},
 };
 
+static const struct sunxi_cpufreq_soc_data sun20i_d1_data = {
+	.efuse_xlate = sun20i_d1_efuse_xlate,
+};
+
 static const struct sunxi_cpufreq_soc_data sun50i_a100_data = {
 	.efuse_xlate = sun50i_a100_efuse_xlate,
 };
@@ -215,6 +224,7 @@ static const struct sunxi_cpufreq_soc_data sun50i_h6_data = {
 };
 
 static const struct of_device_id sun50i_cpufreq_match_list[] = {
+	{ .compatible = "allwinner,sun20i-d1", .data = &sun20i_d1_data },
 	{ .compatible = "allwinner,sun50i-a100", .data = &sun50i_a100_data },
 	{ .compatible = "allwinner,sun50i-h6", .data = &sun50i_h6_data },
 	{}
