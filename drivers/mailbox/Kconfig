@@ -247,13 +247,22 @@ config ZYNQMP_IPI_MBOX
 	  registers to kick the other processor or enquire status.
 
 config SUN6I_MSGBOX
-	tristate "Allwinner sun6i/sun8i/sun9i/sun50i Message Box"
+	tristate "Allwinner sun6i/sun8i/sun9i/sun50i ARISC Message Box"
 	depends on ARCH_SUNXI || COMPILE_TEST
 	default ARCH_SUNXI
 	help
 	  Mailbox implementation for the hardware message box present in
 	  various Allwinner SoCs. This mailbox is used for communication
-	  between the application CPUs and the power management coprocessor.
+	  between the ARM CPUs and the ARISC power management coprocessor.
+
+config SUN8I_MSGBOX
+	tristate "Allwinner sun8i/sun20i/sun50i DSP/RISC-V Message Box"
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
+	default ARCH_SUNXI || SOC_SUNXI
+	help
+	  Mailbox implementation for the hardware message box present in
+	  various Allwinner SoCs. This mailbox is used for communication
+	  between the ARM/RISC-V CPUs and the integrated DSP.
 
 config SPRD_MBOX
 	tristate "Spreadtrum Mailbox"
