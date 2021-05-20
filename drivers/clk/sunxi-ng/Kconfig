@@ -42,6 +42,11 @@ config SUN50I_H6_R_CCU
 	default ARM64 && ARCH_SUNXI
 	depends on (ARM64 && ARCH_SUNXI) || COMPILE_TEST
 
+config SUN50I_RTC_CCU
+	bool "Support for the Allwinner H6/H616/R329/D1 RTC"
+	default ARCH_SUNXI || SOC_SUNXI
+	depends on ARCH_SUNXI || SOC_SUNXI || COMPILE_TEST
+
 config SUN4I_A10_CCU
 	bool "Support for the Allwinner A10/A20 CCU"
 	default MACH_SUN4I
