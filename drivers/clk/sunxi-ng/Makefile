@@ -22,6 +22,8 @@ obj-y				+= ccu_mp.o
 
 # SoC support
 obj-$(CONFIG_SUNIV_F1C100S_CCU)	+= ccu-suniv-f1c100s.o
+obj-$(CONFIG_SUN20I_D1_CCU)	+= ccu-sun20i-d1.o
+obj-$(CONFIG_SUN20I_D1_R_CCU)	+= ccu-sun20i-d1-r.o
 obj-$(CONFIG_SUN50I_A64_CCU)	+= ccu-sun50i-a64.o
 obj-$(CONFIG_SUN50I_A100_CCU)	+= ccu-sun50i-a100.o
 obj-$(CONFIG_SUN50I_A100_R_CCU)	+= ccu-sun50i-a100-r.o
