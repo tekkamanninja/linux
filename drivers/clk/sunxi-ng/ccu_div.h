@@ -166,6 +166,26 @@ struct ccu_div {
 	SUNXI_CCU_M_WITH_GATE(_struct, _name, _parent, _reg,		\
 			      _mshift, _mwidth, 0, _flags)
 
+#define SUNXI_CCU_M_HWS_WITH_GATE(_struct, _name, _parent, _reg,	\
+				  _mshift, _mwidth,	_gate,		\
+				  _flags)				\
+	struct ccu_div _struct = {					\
+		.enable	= _gate,					\
+		.div	= _SUNXI_CCU_DIV(_mshift, _mwidth),		\
+		.common	= {						\
+			.reg		= _reg,				\
+			.hw.init	= CLK_HW_INIT_HWS(_name,	\
+							  _parent,	\
+							  &ccu_div_ops,	\
+							  _flags),	\
+		},							\
+	}
+
+#define SUNXI_CCU_M_HWS(_struct, _name, _parent, _reg, _mshift,		\
+			_mwidth, _flags)				\
+	SUNXI_CCU_M_HWS_WITH_GATE(_struct, _name, _parent, _reg,	\
+				  _mshift, _mwidth, 0, _flags)
+
 static inline struct ccu_div *hw_to_ccu_div(struct clk_hw *hw)
 {
 	struct ccu_common *common = hw_to_ccu_common(hw);
