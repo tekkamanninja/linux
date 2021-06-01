@@ -94,6 +94,7 @@ static void fill_cacheinfo(struct cacheinfo **this_leaf,
 {
 	unsigned int size, sets, line_size;
 
+	/* Buggy: may not init leaves, but num_leaves was set below. */
 	if (!of_property_read_u32(node, "cache-size", &size) &&
 	    !of_property_read_u32(node, "cache-block-size", &line_size) &&
 	    !of_property_read_u32(node, "cache-sets", &sets)) {
