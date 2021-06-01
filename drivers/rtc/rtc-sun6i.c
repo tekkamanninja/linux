@@ -697,8 +697,17 @@ static int sun6i_rtc_probe(struct platform_device *pdev)
 	struct sun6i_rtc_dev *chip = sun6i_rtc;
 	int ret;
 
-	if (!chip)
-		return -ENODEV;
+	if (!chip) {
+		chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
+		if (!chip)
+			return -ENOMEM;
+
+		chip->base = devm_platform_ioremap_resource(pdev, 0);
+		if (IS_ERR(chip->base))
+			return PTR_ERR(chip->base);
+
+		spin_lock_init(&chip->lock);
+	}
 
 	platform_set_drvdata(pdev, chip);
 
@@ -776,6 +785,8 @@ static const struct of_device_id sun6i_rtc_dt_ids[] = {
 	{ .compatible = "allwinner,sun50i-h5-rtc" },
 	{ .compatible = "allwinner,sun50i-h6-rtc" },
 	{ .compatible = "allwinner,sun50i-h616-rtc",
+		.data = (void *)RTC_LINEAR_DAY },
+	{ .compatible = "allwinner,sun20i-d1-rtc",
 		.data = (void *)RTC_LINEAR_DAY },
 	{ /* sentinel */ },
 };
