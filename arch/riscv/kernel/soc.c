@@ -3,8 +3,10 @@
  * Copyright (C) 2020 Western Digital Corporation or its affiliates.
  */
 #include <linux/init.h>
+#include <linux/mm.h>
 #include <linux/libfdt.h>
 #include <linux/pgtable.h>
+#include <asm/image.h>
 #include <asm/soc.h>
 
 /*
@@ -26,3 +28,23 @@ void __init soc_early_init(void)
 		}
 	}
 }
+
+static void __init thead_init(void)
+{
+	__riscv_custom_pte.cache = 0x7000000000000000;
+	__riscv_custom_pte.mask  = 0xf800000000000000;
+	__riscv_custom_pte.io    = BIT(63);
+	__riscv_custom_pte.wc    = 0;
+}
+
+void __init soc_setup_vm(void)
+{
+	unsigned long vendor_id =
+		((struct riscv_image_header *)(&_start))->res1;
+
+	switch (vendor_id) {
+	case THEAD_VENDOR_ID:
+		thead_init();
+		break;
+	}
+};
