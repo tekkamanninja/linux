@@ -548,6 +548,25 @@ int sbi_probe_extension(int extid)
 }
 EXPORT_SYMBOL(sbi_probe_extension);
 
+void sbi_dma_sync(unsigned long start,
+		  unsigned long size,
+		  enum sbi_dma_sync_data_direction dir)
+{
+#if 0
+	sbi_ecall(SBI_EXT_DMA, SBI_DMA_SYNC, start, size, dir,
+		  0, 0, 0);
+#else
+	/* Just for try, it should be in sbi ecall and will be removed before merged */
+	register unsigned long i asm("a0") = start & ~(L1_CACHE_BYTES - 1);
+
+	for (; i < ALIGN(start + size, L1_CACHE_BYTES); i += L1_CACHE_BYTES)
+		__asm__ __volatile__(".long 0x02b5000b");
+
+	__asm__ __volatile__(".long 0x01b0000b");
+#endif
+}
+EXPORT_SYMBOL(sbi_dma_sync);
+
 static long __sbi_base_ecall(int fid)
 {
 	struct sbiret ret;
