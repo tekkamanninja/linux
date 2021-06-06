@@ -15,11 +15,18 @@ properties:
     oneOf:
       - const: allwinner,sun4i-a10-lradc-keys
       - const: allwinner,sun8i-a83t-r-lradc
+      - const: allwinner,sun20i-d1-lradc
       - items:
           - const: allwinner,sun50i-a64-lradc
           - const: allwinner,sun8i-a83t-r-lradc
 
   reg:
+    maxItems: 1
+
+  clocks:
+    maxItems: 1
+
+  resets:
     maxItems: 1
 
   interrupts:
@@ -65,6 +72,17 @@ required:
   - reg
   - interrupts
   - vref-supply
+
+if:
+  properties:
+    compatible:
+      enum:
+        - allwinner,sun20i-d1-lradc
+
+then:
+  required:
+    - clocks
+    - resets
 
 additionalProperties: false
 
