@@ -22,11 +22,57 @@ static inline void flush_dcache_page(struct page *page)
 }
 #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
 
+#define ICACHE_IPA_X5   ".long 0x0382800b"
+#define ICACHE_IVA_X5   ".long 0x0302800b"
+#define SYNC_IS         ".long 0x01b0000b"
+
+static inline void flush_icache_range(unsigned long start, unsigned long end)
+{
+	register unsigned long tmp asm("x5") = start & (~(L1_CACHE_BYTES-1));
+
+	for (; tmp < ALIGN(end, L1_CACHE_BYTES); tmp += L1_CACHE_BYTES) {
+		__asm__ __volatile__ (
+				ICACHE_IVA_X5
+				:
+				: "r" (tmp)
+				: "memory");
+	}
+
+	__asm__ __volatile__(SYNC_IS);
+
+	return;
+}
+
+static inline void flush_icache_range_phy(unsigned long start, unsigned long end)
+{
+	register unsigned long tmp asm("x5") = start & (~(L1_CACHE_BYTES-1));
+
+	for (; tmp < ALIGN(end, L1_CACHE_BYTES); tmp += L1_CACHE_BYTES) {
+		__asm__ __volatile__ (
+				ICACHE_IPA_X5
+				:
+				: "r" (tmp)
+				: "memory");
+	}
+
+	__asm__ __volatile__(SYNC_IS);
+
+	return;
+}
+
+static inline void __flush_icache_page(struct page *page) {
+	unsigned long start = PFN_PHYS(page_to_pfn(page));
+
+	flush_icache_range_phy(start, start + PAGE_SIZE);
+
+	return;
+}
+
 /*
  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
  * so instead we just flush the whole thing.
  */
-#define flush_icache_range(start, end) flush_icache_all()
+#define flush_icache_range(start, end) flush_icache_range(start, end)
 #define flush_icache_user_page(vma, pg, addr, len) \
 	flush_icache_mm(vma->vm_mm, 0)
 
