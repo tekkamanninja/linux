@@ -14,6 +14,7 @@
  * there are no boards known to use channel 1.
  */
 
+#include <linux/clk.h>
 #include <linux/err.h>
 #include <linux/init.h>
 #include <linux/input.h>
@@ -23,6 +24,7 @@
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
 #include <linux/regulator/consumer.h>
+#include <linux/reset.h>
 #include <linux/slab.h>
 
 #define LRADC_CTRL		0x00
@@ -83,6 +85,8 @@ struct sun4i_lradc_data {
 	struct device *dev;
 	struct input_dev *input;
 	void __iomem *base;
+	struct clk *clk;
+	struct reset_control *reset;
 	struct regulator *vref_supply;
 	struct sun4i_lradc_keymap *chan0_map;
 	const struct lradc_variant *variant;
@@ -140,6 +144,14 @@ static int sun4i_lradc_open(struct input_dev *dev)
 	if (error)
 		return error;
 
+	error = reset_control_deassert(lradc->reset);
+	if (error)
+		goto err_disable_reg;
+
+	error = clk_prepare_enable(lradc->clk);
+	if (error)
+		goto err_assert_reset;
+
 	lradc->vref = regulator_get_voltage(lradc->vref_supply) *
 		      lradc->variant->divisor_numerator /
 		      lradc->variant->divisor_denominator;
@@ -153,6 +165,13 @@ static int sun4i_lradc_open(struct input_dev *dev)
 	writel(CHAN0_KEYUP_IRQ | CHAN0_KEYDOWN_IRQ, lradc->base + LRADC_INTC);
 
 	return 0;
+
+err_assert_reset:
+	reset_control_assert(lradc->reset);
+err_disable_reg:
+	regulator_disable(lradc->vref_supply);
+
+	return error;
 }
 
 static void sun4i_lradc_close(struct input_dev *dev)
@@ -164,6 +183,8 @@ static void sun4i_lradc_close(struct input_dev *dev)
 		SAMPLE_RATE(2), lradc->base + LRADC_CTRL);
 	writel(0, lradc->base + LRADC_INTC);
 
+	clk_disable_unprepare(lradc->clk);
+	reset_control_assert(lradc->reset);
 	regulator_disable(lradc->vref_supply);
 }
 
@@ -242,6 +263,14 @@ static int sun4i_lradc_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "Missing sun4i-a10-lradc-keys variant\n");
 		return -EINVAL;
 	}
+
+	lradc->clk = devm_clk_get_optional(dev, NULL);
+	if (IS_ERR(lradc->clk))
+		return PTR_ERR(lradc->clk);
+
+	lradc->reset = devm_reset_control_get_optional_exclusive(dev, NULL);
+	if (IS_ERR(lradc->reset))
+		return PTR_ERR(lradc->reset);
 
 	lradc->vref_supply = devm_regulator_get(dev, "vref");
 	if (IS_ERR(lradc->vref_supply))
