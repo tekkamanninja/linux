@@ -44,6 +44,8 @@ void __init soc_setup_vm(void)
 
 	switch (vendor_id) {
 	case THEAD_VENDOR_ID:
+	// Do not rely on the bootloader...
+	default:
 		thead_init();
 		break;
 	}
