@@ -17,6 +17,7 @@
 		 = { .compatible = compat, .data = fn  }
 
 void soc_early_init(void);
+void soc_setup_vm(void);
 
 extern unsigned long __soc_early_init_table_start;
 extern unsigned long __soc_early_init_table_end;
