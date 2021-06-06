@@ -47,15 +47,20 @@
 #define IOMMU_TLB_FLUSH_MACRO_TLB		BIT(16)
 #define IOMMU_TLB_FLUSH_MICRO_TLB(i)		(BIT(i) & GENMASK(5, 0))
 
+#define IOMMU_TLB_IVLD_MODE_SEL_REG	0x084
+#define IOMMU_TLB_IVLD_START_ADDR_REG	0x088
+#define IOMMU_TLB_IVLD_END_ADDR_REG	0x08c
 #define IOMMU_TLB_IVLD_ADDR_REG		0x090
 #define IOMMU_TLB_IVLD_ADDR_MASK_REG	0x094
 #define IOMMU_TLB_IVLD_ENABLE_REG	0x098
 #define IOMMU_TLB_IVLD_ENABLE_ENABLE		BIT(0)
 
 #define IOMMU_PC_IVLD_ADDR_REG		0x0a0
+#define IOMMU_PC_IVLD_START_ADDR_REG	0x0a4
 #define IOMMU_PC_IVLD_ENABLE_REG	0x0a8
 #define IOMMU_PC_IVLD_ENABLE_ENABLE		BIT(0)
 
+#define IOMMU_PC_IVLD_END_ADDR_REG	0x0ac
 #define IOMMU_DM_AUT_CTRL_REG(d)	(0x0b0 + ((d) / 2) * 4)
 #define IOMMU_DM_AUT_CTRL_RD_UNAVAIL(d, m)	(1 << (((d & 1) * 16) + ((m) * 2)))
 #define IOMMU_DM_AUT_CTRL_WR_UNAVAIL(d, m)	(1 << (((d & 1) * 16) + ((m) * 2) + 1))
@@ -70,6 +75,19 @@
 #define IOMMU_INT_ERR_DATA_REG(i)	(0x150 + (i) * 4)
 #define IOMMU_L1PG_INT_REG		0x0180
 #define IOMMU_L2PG_INT_REG		0x0184
+
+#define IOMMU_VA_REG			0x0190
+#define IOMMU_VA_DATA_REG		0x0194
+#define IOMMU_VA_CONFIG_REG		0x0198
+#define IOMMU_PMU_ENABLE_REG		0x0200
+#define IOMMU_PMU_CLR_REG		0x0210
+#define IOMMU_PMU_ACCESS_LOW_REG(i)	(0x230 + (i) * 16)
+#define IOMMU_PMU_ACCESS_HIGH_REG(i)	(0x234 + (i) * 16)
+#define IOMMU_PMU_HIT_LOW_REG(i)	(0x238 + (i) * 16)
+#define IOMMU_PMU_HIT_HIGH_REG(i)	(0x23c + (i) * 16)
+#define IOMMU_PMU_TL_LOW_REG(i)		(0x300 + (i) * 16)
+#define IOMMU_PMU_TL_HIGH_REG(i)	(0x304 + (i) * 16)
+#define IOMMU_PMU_ML_REG(i)		(0x308 + (i) * 16)
 
 #define IOMMU_INT_INVALID_L2PG			BIT(17)
 #define IOMMU_INT_INVALID_L1PG			BIT(16)
@@ -945,7 +963,7 @@ static int sun50i_iommu_probe(struct platform_device *pdev)
 		goto err_free_group;
 	}
 
-	iommu->reset = devm_reset_control_get(&pdev->dev, NULL);
+	iommu->reset = devm_reset_control_get_optional_exclusive(&pdev->dev, NULL);
 	if (IS_ERR(iommu->reset)) {
 		dev_err(&pdev->dev, "Couldn't get our reset line.\n");
 		ret = PTR_ERR(iommu->reset);
@@ -986,6 +1004,7 @@ err_free_cache:
 }
 
 static const struct of_device_id sun50i_iommu_dt[] = {
+	{ .compatible = "allwinner,sun20i-d1-iommu", },
 	{ .compatible = "allwinner,sun50i-h6-iommu", },
 	{ /* sentinel */ },
 };
