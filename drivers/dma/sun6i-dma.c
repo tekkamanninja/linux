@@ -90,6 +90,14 @@
 
 #define DMA_CHAN_CUR_PARA	0x1c
 
+/*
+ * LLI address mangling
+ *
+ * The LLI link physical address is also mangled, but we avoid dealing
+ * with that by allocating LLIs from the DMA32 zone.
+ */
+#define SET_SRC_HIGH_ADDR(x)		((((x) >> 32) & 0x3U) << 16)
+#define SET_DST_HIGH_ADDR(x)		((((x) >> 32) & 0x3U) << 18)
 
 /*
  * Various hardware related defines
@@ -132,6 +140,7 @@ struct sun6i_dma_config {
 	u32 dst_burst_lengths;
 	u32 src_addr_widths;
 	u32 dst_addr_widths;
+	bool has_high_addr;
 	bool has_mbus_clk;
 };
 
@@ -221,6 +230,12 @@ static inline struct sun6i_desc *
 to_sun6i_desc(struct dma_async_tx_descriptor *tx)
 {
 	return container_of(tx, struct sun6i_desc, vd.tx);
+}
+
+static inline bool sun6i_dma_has_high_addr(struct sun6i_dma_dev *sdev)
+{
+	return IS_ENABLED(CONFIG_ARCH_DMA_ADDR_T_64BIT) &&
+		sdev->cfg->has_high_addr;
 }
 
 static inline void sun6i_dma_dump_com_regs(struct sun6i_dma_dev *sdev)
@@ -645,7 +660,7 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_dma_memcpy(
 	if (!txd)
 		return NULL;
 
-	v_lli = dma_pool_alloc(sdev->pool, GFP_NOWAIT, &p_lli);
+	v_lli = dma_pool_alloc(sdev->pool, GFP_DMA32|GFP_NOWAIT, &p_lli);
 	if (!v_lli) {
 		dev_err(sdev->slave.dev, "Failed to alloc lli memory\n");
 		goto err_txd_free;
@@ -655,6 +670,9 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_dma_memcpy(
 	v_lli->dst = dest;
 	v_lli->len = len;
 	v_lli->para = NORMAL_WAIT;
+	if (sun6i_dma_has_high_addr(sdev))
+		v_lli->para |= SET_SRC_HIGH_ADDR(src) |
+			       SET_DST_HIGH_ADDR(dest);
 
 	burst = convert_burst(8);
 	width = convert_buswidth(DMA_SLAVE_BUSWIDTH_4_BYTES);
@@ -705,7 +723,7 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_slave_sg(
 		return NULL;
 
 	for_each_sg(sgl, sg, sg_len, i) {
-		v_lli = dma_pool_alloc(sdev->pool, GFP_NOWAIT, &p_lli);
+		v_lli = dma_pool_alloc(sdev->pool, GFP_DMA32|GFP_NOWAIT, &p_lli);
 		if (!v_lli)
 			goto err_lli_free;
 
@@ -715,6 +733,9 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_slave_sg(
 		if (dir == DMA_MEM_TO_DEV) {
 			v_lli->src = sg_dma_address(sg);
 			v_lli->dst = sconfig->dst_addr;
+			if (sun6i_dma_has_high_addr(sdev))
+				v_lli->para |= SET_SRC_HIGH_ADDR(sg_dma_address(sg)) |
+					       SET_DST_HIGH_ADDR(sconfig->dst_addr);
 			v_lli->cfg = lli_cfg;
 			sdev->cfg->set_drq(&v_lli->cfg, DRQ_SDRAM, vchan->port);
 			sdev->cfg->set_mode(&v_lli->cfg, LINEAR_MODE, IO_MODE);
@@ -728,6 +749,9 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_slave_sg(
 		} else {
 			v_lli->src = sconfig->src_addr;
 			v_lli->dst = sg_dma_address(sg);
+			if (sun6i_dma_has_high_addr(sdev))
+				v_lli->para |= SET_SRC_HIGH_ADDR(sconfig->src_addr) |
+					       SET_DST_HIGH_ADDR(sg_dma_address(sg));
 			v_lli->cfg = lli_cfg;
 			sdev->cfg->set_drq(&v_lli->cfg, vchan->port, DRQ_SDRAM);
 			sdev->cfg->set_mode(&v_lli->cfg, IO_MODE, LINEAR_MODE);
@@ -786,7 +810,7 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_dma_cyclic(
 		return NULL;
 
 	for (i = 0; i < periods; i++) {
-		v_lli = dma_pool_alloc(sdev->pool, GFP_NOWAIT, &p_lli);
+		v_lli = dma_pool_alloc(sdev->pool, GFP_DMA32|GFP_NOWAIT, &p_lli);
 		if (!v_lli) {
 			dev_err(sdev->slave.dev, "Failed to alloc lli memory\n");
 			goto err_lli_free;
@@ -798,12 +822,18 @@ static struct dma_async_tx_descriptor *sun6i_dma_prep_dma_cyclic(
 		if (dir == DMA_MEM_TO_DEV) {
 			v_lli->src = buf_addr + period_len * i;
 			v_lli->dst = sconfig->dst_addr;
+			if (sun6i_dma_has_high_addr(sdev))
+				v_lli->para |= SET_SRC_HIGH_ADDR(buf_addr + period_len * i) |
+					       SET_DST_HIGH_ADDR(sconfig->dst_addr);
 			v_lli->cfg = lli_cfg;
 			sdev->cfg->set_drq(&v_lli->cfg, DRQ_SDRAM, vchan->port);
 			sdev->cfg->set_mode(&v_lli->cfg, LINEAR_MODE, IO_MODE);
 		} else {
 			v_lli->src = sconfig->src_addr;
 			v_lli->dst = buf_addr + period_len * i;
+			if (sun6i_dma_has_high_addr(sdev))
+				v_lli->para |= SET_SRC_HIGH_ADDR(sconfig->src_addr) |
+					       SET_DST_HIGH_ADDR(buf_addr + period_len * i);
 			v_lli->cfg = lli_cfg;
 			sdev->cfg->set_drq(&v_lli->cfg, vchan->port, DRQ_SDRAM);
 			sdev->cfg->set_mode(&v_lli->cfg, IO_MODE, LINEAR_MODE);
@@ -1174,8 +1204,6 @@ static struct sun6i_dma_config sun50i_a64_dma_cfg = {
 };
 
 /*
- * TODO: Add support for more than 4g physical addressing.
- *
  * The A100 binding uses the number of dma channels from the
  * device tree node.
  */
@@ -1194,6 +1222,7 @@ static struct sun6i_dma_config sun50i_a100_dma_cfg = {
 			     BIT(DMA_SLAVE_BUSWIDTH_2_BYTES) |
 			     BIT(DMA_SLAVE_BUSWIDTH_4_BYTES) |
 			     BIT(DMA_SLAVE_BUSWIDTH_8_BYTES),
+	.has_high_addr = true,
 	.has_mbus_clk = true,
 };
 
