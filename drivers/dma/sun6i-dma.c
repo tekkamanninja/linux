@@ -938,6 +938,7 @@ static int sun6i_dma_terminate_all(struct dma_chan *chan)
 	vchan_get_all_descriptors(&vchan->vc, &head);
 
 	if (pchan) {
+		writel(DMA_CHAN_PAUSE_PAUSE, pchan->base + DMA_CHAN_PAUSE);
 		writel(DMA_CHAN_ENABLE_STOP, pchan->base + DMA_CHAN_ENABLE);
 		writel(DMA_CHAN_PAUSE_RESUME, pchan->base + DMA_CHAN_PAUSE);
 
@@ -952,6 +953,13 @@ static int sun6i_dma_terminate_all(struct dma_chan *chan)
 	vchan_dma_desc_free_list(&vchan->vc, &head);
 
 	return 0;
+}
+
+static void sun6i_dma_synchronize(struct dma_chan *chan)
+{
+	struct sun6i_vchan *vchan = to_sun6i_vchan(chan);
+
+	vchan_synchronize(&vchan->vc);
 }
 
 static enum dma_status sun6i_dma_tx_status(struct dma_chan *chan,
@@ -1357,6 +1365,7 @@ static int sun6i_dma_probe(struct platform_device *pdev)
 	sdc->slave.device_pause			= sun6i_dma_pause;
 	sdc->slave.device_resume		= sun6i_dma_resume;
 	sdc->slave.device_terminate_all		= sun6i_dma_terminate_all;
+	sdc->slave.device_synchronize		= sun6i_dma_synchronize;
 	sdc->slave.src_addr_widths		= sdc->cfg->src_addr_widths;
 	sdc->slave.dst_addr_widths		= sdc->cfg->dst_addr_widths;
 	sdc->slave.directions			= BIT(DMA_DEV_TO_MEM) |
@@ -1415,9 +1424,9 @@ static int sun6i_dma_probe(struct platform_device *pdev)
 		vchan_init(&vchan->vc, &sdc->slave);
 	}
 
-	ret = reset_control_deassert(sdc->rstc);
+	ret = reset_control_reset(sdc->rstc);
 	if (ret) {
-		dev_err(&pdev->dev, "Couldn't deassert the device from reset\n");
+		dev_err(&pdev->dev, "Couldn't reset the device\n");
 		goto err_chan_free;
 	}
 
