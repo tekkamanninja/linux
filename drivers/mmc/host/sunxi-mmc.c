@@ -54,25 +54,56 @@
 #define SDXC_REG_MISTA	(0x34) /* SMC Masked Interrupt Status Register */
 #define SDXC_REG_RINTR	(0x38) /* SMC Raw Interrupt Status Register */
 #define SDXC_REG_STAS	(0x3C) /* SMC Status Register */
-#define SDXC_REG_FTRGL	(0x40) /* SMC FIFO Threshold Watermark Registe */
+#define SDXC_REG_FTRGL	(0x40) /* SMC FIFO Threshold Watermark Register */
 #define SDXC_REG_FUNS	(0x44) /* SMC Function Select Register */
 #define SDXC_REG_CBCR	(0x48) /* SMC CIU Byte Count Register */
 #define SDXC_REG_BBCR	(0x4C) /* SMC BIU Byte Count Register */
 #define SDXC_REG_DBGC	(0x50) /* SMC Debug Enable Register */
-#define SDXC_REG_HWRST	(0x78) /* SMC Card Hardware Reset for Register */
+#define SDXC_REG_HWRST	(0x78) /* SMC Card Hardware Reset Register */
 #define SDXC_REG_DMAC	(0x80) /* SMC IDMAC Control Register */
-#define SDXC_REG_DLBA	(0x84) /* SMC IDMAC Descriptor List Base Addre */
+#define SDXC_REG_DLBA	(0x84) /* SMC IDMAC Descriptor List Base Address */
 #define SDXC_REG_IDST	(0x88) /* SMC IDMAC Status Register */
 #define SDXC_REG_IDIE	(0x8C) /* SMC IDMAC Interrupt Enable Register */
-#define SDXC_REG_CHDA	(0x90)
-#define SDXC_REG_CBDA	(0x94)
+#define SDXC_REG_CHDA	(0x90) /* Current Host Descriptor Address */
+#define SDXC_REG_CBDA	(0x94) /* Current Buffer Descriptor Address */
+
+/* New registers introduced in A80 */
+#define SDXC_REG_A12A		0x058 /* Auto Command 12 Register */
+#define SDXC_REG_THLD		0x100 /* Card Threshold Control Register */
+#define SDXC_REG_DSBD		0x10C /* eMMC 4.5 DDR Start Bit Detection */
+
+/* New registers introduced in A83T */
+#define SDXC_REG_NTSR		0x05C /* New Timing Set Register */
+#define SDXC_REG_SDBG		0x060 /* New Timing Set Debug Register */
+
+/* New registers introduced in H3 */
+#define SDXC_REG_RES_CRC	0x110 /* CRC Response from Card/eMMC */
+#define SDXC_REG_D7_CRC		0x114 /* CRC Data 7 from Card/eMMC */
+#define SDXC_REG_D6_CRC		0x118 /* CRC Data 6 from Card/eMMC */
+#define SDXC_REG_D5_CRC		0x11C /* CRC Data 5 from Card/eMMC */
+#define SDXC_REG_D4_CRC		0x120 /* CRC Data 4 from Card/eMMC */
+#define SDXC_REG_D3_CRC		0x124 /* CRC Data 3 from Card/eMMC */
+#define SDXC_REG_D2_CRC		0x128 /* CRC Data 2 from Card/eMMC */
+#define SDXC_REG_D1_CRC		0x12C /* CRC Data 1 from Card/eMMC */
+#define SDXC_REG_D0_CRC		0x130 /* CRC Data 0 from Card/eMMC */
+#define SDXC_REG_CRC_STA	0x134 /* CRC Status from Write Operation */
 
 /* New registers introduced in A64 */
-#define SDXC_REG_A12A		0x058 /* SMC Auto Command 12 Register */
-#define SDXC_REG_SD_NTSR	0x05C /* SMC New Timing Set Register */
+#define SDXC_REG_CSDC		0x054 /* CRC Status Detect Register */
 #define SDXC_REG_DRV_DL		0x140 /* Drive Delay Control Register */
-#define SDXC_REG_SAMP_DL_REG	0x144 /* SMC sample delay control */
-#define SDXC_REG_DS_DL_REG	0x148 /* SMC data strobe delay control */
+#define SDXC_REG_SAMP_DL	0x144 /* Sample Delay Control Register */
+#define SDXC_REG_DS_DL		0x148 /* Data Strobe Delay Control Register */
+
+/* New registers introduced in H6 */
+#define SDXC_REG_EMCE		0x064 /* Embedded Encrypt/Decrypt Control */
+#define SDXC_REG_EMCE_DBG	0x068 /* Embedded Encrypt/Decrypt Debug */
+
+/* New registers introduced in H616 */
+#define SDXC_REG_EXT_CMD	0x138 /* Extended Command Register */
+#define SDXC_REG_EXT_RESP	0x13C /* Extended Response Register */
+
+/* New registers introduced in A100 */
+#define SDXC_REG_HS400_DL	0x14C /* HS400 Delay Control Register */
 
 #define mmc_readl(host, reg) \
 	readl((host)->reg_base + SDXC_##reg)
@@ -836,9 +867,9 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 	 */
 	if (host->use_new_timings) {
 		/* Don't touch the delay bits */
-		rval = mmc_readl(host, REG_SD_NTSR);
+		rval = mmc_readl(host, REG_NTSR);
 		rval |= SDXC_2X_TIMING_MODE;
-		mmc_writel(host, REG_SD_NTSR, rval);
+		mmc_writel(host, REG_NTSR, rval);
 	}
 
 	/* sunxi_mmc_clk_set_phase expects the actual card clock rate */
@@ -846,7 +877,7 @@ static int sunxi_mmc_clk_set_rate(struct sunxi_mmc_host *host,
 	if (ret)
 		return ret;
 
-	ret = sunxi_mmc_calibrate(host, SDXC_REG_SAMP_DL_REG);
+	ret = sunxi_mmc_calibrate(host, SDXC_REG_SAMP_DL);
 	if (ret)
 		return ret;
 
