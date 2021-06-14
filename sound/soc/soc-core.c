@@ -17,6 +17,7 @@
 //   o Add more codecs and platforms to ensure good API coverage.
 //   o Support TDM on PCM and I2S
 
+#define DEBUG
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/init.h>
@@ -1021,6 +1022,8 @@ int snd_soc_add_pcm_runtime(struct snd_soc_card *card,
 			if (!snd_soc_is_matching_component(platform, component))
 				continue;
 
+			dev_warn(card->dev, "ASoC: Adding component %s for platform %pOF\n",
+				 component->name, platform->of_node);
 			snd_soc_rtd_add_component(rtd, component);
 		}
 	}
