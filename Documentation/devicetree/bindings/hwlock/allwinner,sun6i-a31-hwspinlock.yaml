@@ -15,7 +15,11 @@ description:
 
 properties:
   compatible:
-    const: allwinner,sun6i-a31-hwspinlock
+    oneOf:
+      - const: allwinner,sun6i-a31-hwspinlock
+      - items:
+          - const: allwinner,sun20i-d1-hwspinlock
+          - const: allwinner,sun6i-a31-hwspinlock
 
   reg:
     maxItems: 1
@@ -24,6 +28,9 @@ properties:
     maxItems: 1
 
   resets:
+    maxItems: 1
+
+  interrupts:
     maxItems: 1
 
 required:
