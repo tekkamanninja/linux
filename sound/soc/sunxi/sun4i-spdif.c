@@ -173,6 +173,8 @@
  * @val_fctl_ftx: TX FIFO flush bitmask.
  */
 struct sun4i_spdif_quirks {
+	const char *rx_clk_name;
+	const char *tx_clk_name;
 	unsigned int reg_dac_txdata;
 	bool has_reset;
 	unsigned int val_fctl_ftx;
@@ -180,8 +182,9 @@ struct sun4i_spdif_quirks {
 
 struct sun4i_spdif_dev {
 	struct platform_device *pdev;
-	struct clk *spdif_clk;
 	struct clk *apb_clk;
+	struct clk *rx_clk;
+	struct clk *tx_clk;
 	struct reset_control *rst;
 	struct snd_soc_dai_driver cpu_dai_drv;
 	struct regmap *regmap;
@@ -313,7 +316,7 @@ static int sun4i_spdif_hw_params(struct snd_pcm_substream *substream,
 		return -EINVAL;
 	}
 
-	ret = clk_set_rate(host->spdif_clk, mclk);
+	ret = clk_set_rate(host->tx_clk, mclk);
 	if (ret < 0) {
 		dev_err(&pdev->dev,
 			"Setting SPDIF clock rate for %d Hz failed!\n", mclk);
@@ -426,23 +429,27 @@ static struct snd_soc_dai_driver sun4i_spdif_dai = {
 };
 
 static const struct sun4i_spdif_quirks sun4i_a10_spdif_quirks = {
+	.tx_clk_name	= "spdif",
 	.reg_dac_txdata	= SUN4I_SPDIF_TXFIFO,
 	.val_fctl_ftx   = SUN4I_SPDIF_FCTL_FTX,
 };
 
 static const struct sun4i_spdif_quirks sun6i_a31_spdif_quirks = {
+	.tx_clk_name	= "spdif",
 	.reg_dac_txdata	= SUN4I_SPDIF_TXFIFO,
 	.val_fctl_ftx   = SUN4I_SPDIF_FCTL_FTX,
 	.has_reset	= true,
 };
 
 static const struct sun4i_spdif_quirks sun8i_h3_spdif_quirks = {
+	.tx_clk_name	= "spdif",
 	.reg_dac_txdata	= SUN8I_SPDIF_TXFIFO,
 	.val_fctl_ftx   = SUN4I_SPDIF_FCTL_FTX,
 	.has_reset	= true,
 };
 
 static const struct sun4i_spdif_quirks sun50i_h6_spdif_quirks = {
+	.tx_clk_name	= "spdif",
 	.reg_dac_txdata = SUN8I_SPDIF_TXFIFO,
 	.val_fctl_ftx   = SUN50I_H6_SPDIF_FCTL_FTX,
 	.has_reset      = true,
@@ -477,7 +484,7 @@ static int sun4i_spdif_runtime_suspend(struct device *dev)
 {
 	struct sun4i_spdif_dev *host  = dev_get_drvdata(dev);
 
-	clk_disable_unprepare(host->spdif_clk);
+	clk_disable_unprepare(host->tx_clk);
 	clk_disable_unprepare(host->apb_clk);
 
 	return 0;
@@ -488,12 +495,12 @@ static int sun4i_spdif_runtime_resume(struct device *dev)
 	struct sun4i_spdif_dev *host  = dev_get_drvdata(dev);
 	int ret;
 
-	ret = clk_prepare_enable(host->spdif_clk);
+	ret = clk_prepare_enable(host->tx_clk);
 	if (ret)
 		return ret;
 	ret = clk_prepare_enable(host->apb_clk);
 	if (ret)
-		clk_disable_unprepare(host->spdif_clk);
+		clk_disable_unprepare(host->tx_clk);
 
 	return ret;
 }
@@ -540,10 +547,11 @@ static int sun4i_spdif_probe(struct platform_device *pdev)
 		return PTR_ERR(host->apb_clk);
 	}
 
-	host->spdif_clk = devm_clk_get(&pdev->dev, "spdif");
-	if (IS_ERR(host->spdif_clk)) {
-		dev_err(&pdev->dev, "failed to get a spdif clock.\n");
-		return PTR_ERR(host->spdif_clk);
+	if (quirks->tx_clk_name)
+		host->tx_clk = devm_clk_get(&pdev->dev, quirks->tx_clk_name);
+	if (IS_ERR(host->tx_clk)) {
+		dev_err(&pdev->dev, "failed to get transmit clock.\n");
+		return PTR_ERR(host->tx_clk);
 	}
 
 	host->dma_params_tx.addr = res->start + quirks->reg_dac_txdata;
