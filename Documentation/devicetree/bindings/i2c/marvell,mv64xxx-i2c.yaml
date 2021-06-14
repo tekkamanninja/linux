@@ -21,6 +21,7 @@ properties:
           - enum:
               - allwinner,sun8i-a23-i2c
               - allwinner,sun8i-a83t-i2c
+              - allwinner,sun20i-d1-i2c
               - allwinner,sun50i-a64-i2c
               - allwinner,sun50i-a100-i2c
               - allwinner,sun50i-h6-i2c
