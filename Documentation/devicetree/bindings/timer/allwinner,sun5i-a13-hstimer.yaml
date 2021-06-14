@@ -18,6 +18,13 @@ properties:
       - items:
           - const: allwinner,sun6i-a31-hstimer
           - const: allwinner,sun7i-a20-hstimer
+      - const: allwinner,sun50i-h6-hstimer
+        description: one interrupt, different register layout
+      - items:
+          - enum:
+              - allwinner,sun20i-d1-hstimer
+              - allwinner,sun50i-h616-hstimer
+          - const: allwinner,sun50i-h6-hstimer
 
   reg:
     maxItems: 1
@@ -45,7 +52,11 @@ required:
 if:
   properties:
     compatible:
-      const: allwinner,sun5i-a13-hstimer
+      contains:
+        enum:
+          - allwinner,sun5i-a13-hstimer
+          - allwinner,sun20i-d1-hstimer
+          - allwinner,sun50i-h616-hstimer
 
 then:
   properties:
