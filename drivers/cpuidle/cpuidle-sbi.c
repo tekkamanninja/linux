@@ -19,8 +19,10 @@
 #include <linux/platform_device.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
+
 #include <asm/cpuidle.h>
 #include <asm/sbi.h>
+#include <asm/smp.h>
 #include <asm/suspend.h>
 
 #include "dt_idle_states.h"
