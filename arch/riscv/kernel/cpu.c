@@ -77,7 +77,9 @@ static void print_mmu(struct seq_file *f, const char *mmu_type)
 		return;
 #elif defined(CONFIG_64BIT)
 	if (strcmp(mmu_type, "riscv,sv39") != 0 &&
-	    strcmp(mmu_type, "riscv,sv48") != 0)
+	    strcmp(mmu_type, "riscv,sv48") != 0 &&
+	    strcmp(mmu_type, "riscv,sv39,svpbmt") != 0 &&
+	    strcmp(mmu_type, "riscv,sv48,svpbmt") != 0)
 		return;
 #endif
 
