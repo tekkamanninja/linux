@@ -10,6 +10,7 @@
  * warranty of any kind, whether express or implied.
  */
 
+#define DEBUG
 #include <linux/io.h>
 #include <linux/clk.h>
 #include <linux/gpio/driver.h>
@@ -1026,8 +1027,15 @@ static void sunxi_pinctrl_irq_ack(struct irq_data *d)
 	u32 status_reg = sunxi_irq_status_reg(pctl->desc, d->hwirq);
 	u8 status_idx = sunxi_irq_status_offset(d->hwirq);
 
+	u32 old = readl(pctl->membase + status_reg);
+
 	/* Clear the IRQ */
 	writel(1 << status_idx, pctl->membase + status_reg);
+
+	u32 new = readl(pctl->membase + status_reg);
+
+	pr_err("acked %ld in 0x%08x, was 0x%08x, now 0x%08x\n",
+		d->hwirq, status_reg, old, new);
 }
 
 static void sunxi_pinctrl_irq_mask(struct irq_data *d)
