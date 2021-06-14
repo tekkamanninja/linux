@@ -2337,7 +2337,7 @@ static int soc_dapm_mixer_update_power(struct snd_soc_card *card,
 		 * right channel.
 		 *
 		 * A stereo control is signified by a valid 'rconnect'
-		 * value, either 0 for unconnected, or >= 0 for connected.
+		 * value, either 0 for unconnected, or > 0 for connected.
 		 * This is chosen instead of using snd_soc_volsw_is_stereo,
 		 * so that the behavior of snd_soc_dapm_mixer_update_power
 		 * doesn't change even when the kcontrol passed in is
