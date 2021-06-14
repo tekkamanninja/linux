@@ -80,6 +80,12 @@ static struct sunxi_sram_desc sun4i_a10_sram_d = {
 				  SUNXI_SRAM_MAP(1, 1, "usb-otg")),
 };
 
+static struct sunxi_sram_desc sun20i_d1_dsp_sram = {
+	.data	= SUNXI_SRAM_DATA("DSP", 0x8, 0, 1,
+				  SUNXI_SRAM_MAP(1, 0, "cpu"),
+				  SUNXI_SRAM_MAP(0, 1, "dsp")),
+};
+
 static struct sunxi_sram_desc sun50i_a64_sram_c = {
 	.data	= SUNXI_SRAM_DATA("C", 0x4, 24, 1,
 				  SUNXI_SRAM_MAP(1, 0, "cpu"),
@@ -98,6 +104,10 @@ static const struct of_device_id sunxi_sram_dt_ids[] = {
 	{
 		.compatible	= "allwinner,sun4i-a10-sram-d",
 		.data		= &sun4i_a10_sram_d.data,
+	},
+	{
+		.compatible	= "allwinner,sun20i-d1-dsp-sram",
+		.data		= &sun20i_d1_dsp_sram.data,
 	},
 	{
 		.compatible	= "allwinner,sun50i-a64-sram-c",
