@@ -160,13 +160,11 @@ static int sun6i_hwspinlock_probe(struct platform_device *pdev)
 
 	/* failure of debugfs is considered non-fatal */
 	sun6i_hwspinlock_debugfs_init(priv);
-	if (IS_ERR(priv->debugfs))
-		priv->debugfs = NULL;
 
 	err = devm_add_action_or_reset(&pdev->dev, sun6i_hwspinlock_disable, priv);
 	if (err) {
 		dev_err(&pdev->dev, "failed to add hwspinlock disable action\n");
-		goto bank_fail;
+		goto action_fail;
 	}
 
 	platform_set_drvdata(pdev, priv);
@@ -174,6 +172,8 @@ static int sun6i_hwspinlock_probe(struct platform_device *pdev)
 	return devm_hwspin_lock_register(&pdev->dev, priv->bank, &sun6i_hwspinlock_ops,
 					 SPINLOCK_BASE_ID, priv->nlocks);
 
+action_fail:
+	debugfs_remove_recursive(priv->debugfs);
 bank_fail:
 	clk_disable_unprepare(priv->ahb_clk);
 clk_fail:
