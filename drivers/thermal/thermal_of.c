@@ -558,10 +558,6 @@ void thermal_zone_of_sensor_unregister(struct device *dev,
 
 	tz = tzd->devdata;
 
-	/* no __thermal_zone, nothing to be done */
-	if (!tz)
-		return;
-
 	/* stop temperature polling */
 	thermal_zone_device_disable(tzd);
 
