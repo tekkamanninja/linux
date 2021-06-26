@@ -928,6 +928,13 @@ config LEDS_ACER_A500
 	  This option enables support for the Power Button LED of
 	  Acer Iconia Tab A500.
 
+config LEDS_SUN20I
+	tristate "LED support for sun20i built-in LED controller"
+	depends on LEDS_CLASS
+	help
+	  This option enables support for the LED controller in the
+	  Allwinner sun20i SoCs.
+
 source "drivers/leds/blink/Kconfig"
 
 comment "Flash and Torch LED drivers"
