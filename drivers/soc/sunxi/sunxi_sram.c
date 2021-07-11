@@ -265,17 +265,26 @@ int sunxi_sram_release(struct device *dev)
 {
 	const struct sunxi_sram_data *sram_data;
 	struct sunxi_sram_desc *sram_desc;
+	unsigned int device;
+	u32 val, mask;
 
 	if (!dev || !dev->of_node)
 		return -EINVAL;
 
-	sram_data = sunxi_sram_of_parse(dev->of_node, NULL);
+	sram_data = sunxi_sram_of_parse(dev->of_node, &device);
 	if (IS_ERR(sram_data))
 		return -EINVAL;
 
 	sram_desc = to_sram_desc(sram_data);
 
 	spin_lock(&sram_lock);
+	mask = GENMASK(sram_data->offset + sram_data->width - 1,
+		       sram_data->offset);
+	val = readl(base + sram_data->reg);
+	val &= ~mask;
+	writel(val | ((~device << sram_data->offset) & mask),
+	       base + sram_data->reg);
+
 	sram_desc->claimed = false;
 	spin_unlock(&sram_lock);
 
