@@ -557,6 +557,7 @@ asmlinkage void __init setup_vm(uintptr_t dtb_pa)
 #ifndef __PAGETABLE_PMD_FOLDED
 	pmd_t fix_bmap_spmd, fix_bmap_epmd;
 #endif
+	apply_errata_setup_vm();
 
 	kernel_map.virt_addr = KERNEL_LINK_ADDR;
 
