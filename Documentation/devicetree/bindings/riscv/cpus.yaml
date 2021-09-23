@@ -48,15 +48,18 @@ properties:
 
   mmu-type:
     description:
-      Identifies the MMU address translation mode used on this
-      hart.  These values originate from the RISC-V Privileged
-      Specification document, available from
+      Identifies the MMU address translation mode and page based
+      memory type used on used on this hart.  These values originate
+      from the RISC-V Privileged Specification document, available
+      from
       https://riscv.org/specifications/
     $ref: "/schemas/types.yaml#/definitions/string"
     enum:
       - riscv,sv32
       - riscv,sv39
+      - riscv,sv39,svpbmt
       - riscv,sv48
+      - riscv,sv48,svpbmt
       - riscv,none
 
   riscv,isa:
