@@ -1026,13 +1026,14 @@ static void sunxi_pinctrl_irq_ack(struct irq_data *d)
 	struct sunxi_pinctrl *pctl = irq_data_get_irq_chip_data(d);
 	u32 status_reg = sunxi_irq_status_reg(pctl->desc, d->hwirq);
 	u8 status_idx = sunxi_irq_status_offset(d->hwirq);
+	u32 new, old;
 
-	u32 old = readl(pctl->membase + status_reg);
+	old = readl(pctl->membase + status_reg);
 
 	/* Clear the IRQ */
 	writel(1 << status_idx, pctl->membase + status_reg);
 
-	u32 new = readl(pctl->membase + status_reg);
+	new = readl(pctl->membase + status_reg);
 
 	pr_err("acked %ld in 0x%08x, was 0x%08x, now 0x%08x\n",
 		d->hwirq, status_reg, old, new);
