@@ -560,7 +560,7 @@ void sbi_dma_sync(unsigned long start,
 	register unsigned long i asm("a0") = start & ~(L1_CACHE_BYTES - 1);
 
 	for (; i < ALIGN(start + size, L1_CACHE_BYTES); i += L1_CACHE_BYTES)
-		__asm__ __volatile__(".long 0x02b5000b");
+		__asm__ __volatile__(".long 0x02b5000b" : : "r"(i));
 
 	__asm__ __volatile__(".long 0x01b0000b");
 #endif
