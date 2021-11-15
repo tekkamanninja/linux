@@ -5,7 +5,7 @@
 
 config SUNXI_MBUS
 	bool
-	default ARCH_SUNXI
+	default ARCH_SUNXI && !RISCV
 	help
 	  Say y to enable the fixups needed to support the Allwinner
 	  MBUS DMA quirks.
