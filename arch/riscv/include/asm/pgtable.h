@@ -139,7 +139,7 @@
 				| _PAGE_ACCESSED \
 				| _PAGE_DIRTY \
 				| _PAGE_GLOBAL \
-				| _PAGE_MT_PMA)
+				| _PAGE_PMA)
 
 #define PAGE_KERNEL		__pgprot(_PAGE_KERNEL)
 #define PAGE_KERNEL_READ	__pgprot(_PAGE_KERNEL & ~_PAGE_WRITE)
@@ -149,7 +149,7 @@
 
 #define PAGE_TABLE		__pgprot(_PAGE_TABLE)
 
-#define _PAGE_IOREMAP	((_PAGE_KERNEL & ~_PAGE_MT_MASK) | _PAGE_MT_IO)
+#define _PAGE_IOREMAP	((_PAGE_KERNEL & ~_PAGE_MASK) | _PAGE_IO)
 
 #define PAGE_IOREMAP		__pgprot(_PAGE_IOREMAP)
 
@@ -231,12 +231,12 @@ static inline unsigned long _pgd_pfn(pgd_t pgd)
 
 static inline struct page *pmd_page(pmd_t pmd)
 {
-	return pfn_to_page((pmd_val(pmd) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
+	return pfn_to_page(_chg_of_pmd(pmd) >> _PAGE_PFN_SHIFT);
 }
 
 static inline unsigned long pmd_page_vaddr(pmd_t pmd)
 {
-	return (unsigned long)pfn_to_virt((pmd_val(pmd) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
+	return (unsigned long)pfn_to_virt(_chg_of_pmd(pmd) >> _PAGE_PFN_SHIFT);
 }
 
 static inline pte_t pmd_pte(pmd_t pmd)
@@ -252,7 +252,7 @@ static inline pte_t pud_pte(pud_t pud)
 /* Yields the page frame number (PFN) of a page table entry */
 static inline unsigned long pte_pfn(pte_t pte)
 {
-	return ((pte_val(pte) & _PAGE_CHG_MASK) >> _PAGE_PFN_SHIFT);
+	return (_chg_of_pte(pte) >> _PAGE_PFN_SHIFT);
 }
 
 #define pte_page(x)     pfn_to_page(pte_pfn(x))
@@ -496,8 +496,8 @@ static inline pgprot_t pgprot_noncached(pgprot_t _prot)
 {
 	unsigned long prot = pgprot_val(_prot);
 
-	prot &= ~_PAGE_MT_MASK;
-	prot |= _PAGE_MT_IO;
+	prot &= ~_PAGE_MASK;
+	prot |= _PAGE_IO;
 
 	return __pgprot(prot);
 }
@@ -507,8 +507,8 @@ static inline pgprot_t pgprot_writecombine(pgprot_t _prot)
 {
 	unsigned long prot = pgprot_val(_prot);
 
-	prot &= ~_PAGE_MT_MASK;
-	prot |= _PAGE_MT_NC;
+	prot &= ~_PAGE_MASK;
+	prot |= _PAGE_NOCACHE;
 
 	return __pgprot(prot);
 }

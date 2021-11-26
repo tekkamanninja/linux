@@ -73,14 +73,17 @@ static void __init mmu_supports_svpbmt(void)
 		if (!strncmp(str + 6, "none", 4))
 			continue;
 
-		if (!of_property_read_bool(node, "mmu-supports-svpbmt"))
-			return;
+		if (of_property_read_string(node, "mmu", &str))
+			continue;
+
+		if (strncmp(str + 6, "svpmbt", 6))
+			continue;
 	}
 
-	__riscv_svpbmt.mask	= _SVPBMT_MASK;
-	__riscv_svpbmt.mt_pma	= _SVPBMT_PMA;
-	__riscv_svpbmt.mt_nc	= _SVPBMT_NC;
-	__riscv_svpbmt.mt_io	= _SVPBMT_IO;
+	__svpbmt.pma		= _SVPBMT_PMA;
+	__svpbmt.nocache	= _SVPBMT_NC;
+	__svpbmt.io		= _SVPBMT_IO;
+	__svpbmt.mask		= _SVPBMT_MASK;
 #endif
 }
 
