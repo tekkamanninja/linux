@@ -7,6 +7,7 @@
  */
 
 #include <linux/bitmap.h>
+#include <linux/libfdt.h>
 #include <linux/of.h>
 #include <asm/alternative.h>
 #include <asm/errata_list.h>
@@ -159,7 +160,85 @@ struct cpufeature_info {
 	bool (*check_func)(unsigned int stage);
 };
 
+#if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
+static bool cpufeature_svpbmt_check_fdt(void)
+{
+	const void *fdt = dtb_early_va;
+	const char *str;
+	int offset;
+
+	offset = fdt_path_offset(fdt, "/cpus");
+	if (offset < 0)
+		return false;
+
+	for (offset = fdt_next_node(fdt, offset, NULL); offset >= 0;
+	     offset = fdt_next_node(fdt, offset, NULL)) {
+		str = fdt_getprop(fdt, offset, "device_type", NULL);
+		if (!str || strcmp(str, "cpu"))
+			break;
+
+		str = fdt_getprop(fdt, offset, "mmu-type", NULL);
+		if (!str)
+			continue;
+
+		if (!strncmp(str + 6, "none", 4))
+			continue;
+
+		str = fdt_getprop(fdt, offset, "mmu", NULL);
+		if (!str)
+			continue;
+
+		if (!strncmp(str + 6, "svpbmt", 6))
+			return true;
+	}
+
+	return false;
+}
+
+static bool cpufeature_svpbmt_check_of(void)
+{
+	struct device_node *node;
+	const char *str;
+
+	for_each_of_cpu_node(node) {
+		if (of_property_read_string(node, "mmu-type", &str))
+			continue;
+
+		if (!strncmp(str + 6, "none", 4))
+			continue;
+
+		if (of_property_read_string(node, "mmu", &str))
+			continue;
+
+		if (!strncmp(str + 6, "svpbmt", 6))
+			return true;
+	}
+
+	return false;
+}
+#endif
+
+static bool cpufeature_svpbmt_check_func(unsigned int stage)
+{
+	bool ret = false;
+
+#if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
+	switch (stage) {
+	case RISCV_ALTERNATIVES_BOOT:
+		return cpufeature_svpbmt_check_fdt();
+	default:
+		return cpufeature_svpbmt_check_of();
+	}
+#endif
+
+	return ret;
+}
+
 static const struct cpufeature_info cpufeature_list[CPUFEATURE_NUMBER] = {
+	{
+		.name = "svpbmt",
+		.check_func = cpufeature_svpbmt_check_func
+	},
 };
 
 static u32 __init cpufeature_probe(unsigned int stage)
