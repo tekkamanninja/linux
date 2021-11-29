@@ -80,10 +80,9 @@ static void __init mmu_supports_svpbmt(void)
 			continue;
 	}
 
-	__svpbmt.pma		= _SVPBMT_PMA;
-	__svpbmt.nocache	= _SVPBMT_NC;
-	__svpbmt.io		= _SVPBMT_IO;
-	__svpbmt.mask		= _SVPBMT_MASK;
+	__svpbmt.nocache	= _PAGE_MT_NC;
+	__svpbmt.io		= _PAGE_MT_IO;
+	__svpbmt.mask		= _PAGE_MT_MASK;
 #endif
 }
 

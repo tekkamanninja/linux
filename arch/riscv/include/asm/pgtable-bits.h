@@ -35,10 +35,9 @@
  *  10 - IO     Non-cacheable, non-idempotent, strongly-ordered I/O memory
  *  11 - Rsvd   Reserved for future standard use
  */
-#define _SVPBMT_PMA		0UL
-#define _SVPBMT_NC		(1UL << 61)
-#define _SVPBMT_IO		(1UL << 62)
-#define _SVPBMT_MASK		(_SVPBMT_NC | _SVPBMT_IO)
+#define _PAGE_MT_NC		(1UL << 61)
+#define _PAGE_MT_IO		(1UL << 62)
+#define _PAGE_MT_MASK		(_PAGE_MT_NC | _PAGE_MT_IO)
 
 
 extern struct __svpbmt_struct {

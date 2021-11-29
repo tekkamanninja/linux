@@ -856,6 +856,6 @@ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
 #endif
 
 #if defined(CONFIG_64BIT)
-struct __svpbmt_struct __svpbmt __ro_after_init;
+struct __svpbmt_struct __svpbmt __ro_after_init = {0UL, 0UL, 0UL, 0UL};
 EXPORT_SYMBOL(__svpbmt);
 #endif
