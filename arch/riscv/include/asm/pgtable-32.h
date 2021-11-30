@@ -16,4 +16,9 @@
 
 #define MAX_POSSIBLE_PHYSMEM_BITS 34
 
+static inline unsigned long _chg_of_pmd(pmd_t pmd)
+{
+	return (pmd_val(pmd) & _PAGE_CHG_MASK);
+}
+
 #endif /* _ASM_RISCV_PGTABLE_32_H */

@@ -49,7 +49,7 @@ extern struct __svpbmt_struct {
 
 #define _PAGE_MASK		__svpbmt.mask
 #define _PAGE_PMA		__svpbmt.pma
-#define _PAGE_NOCACHE		__svpbmt.nocache
+#define _PAGE_NOCACHE	__svpbmt.nocache
 #define _PAGE_IO		__svpbmt.io
 #else
 #define _PAGE_MASK		0

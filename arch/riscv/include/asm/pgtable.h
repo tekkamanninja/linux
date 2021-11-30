@@ -249,6 +249,11 @@ static inline pte_t pud_pte(pud_t pud)
 	return __pte(pud_val(pud));
 }
 
+static inline unsigned long _chg_of_pte(pte_t pte)
+{
+	return (pte_val(pte) & _PAGE_CHG_MASK);
+}
+
 /* Yields the page frame number (PFN) of a page table entry */
 static inline unsigned long pte_pfn(pte_t pte)
 {
