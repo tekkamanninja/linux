@@ -914,6 +914,11 @@ static int __init lock_torture_init(void)
 		&percpu_rwsem_lock_ops,
 	};
 
+
+printk("%s: -----> %llx\n", __func__, _PAGE_MTMASK);
+
+
+return -EINVAL;
 	if (!torture_init_begin(torture_type, verbose))
 		return -EBUSY;
 

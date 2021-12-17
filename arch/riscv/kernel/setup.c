@@ -320,6 +320,14 @@ subsys_initcall(topology_init);
 
 void free_initmem(void)
 {
+	unsigned long prot_val = pgprot_val(PAGE_KERNEL);
+
+printk("%s: _PAGE_KERNEL-orig: 0x%lx\n", __func__, prot_val);
+	ALT_THEAD_PMA(prot_val);
+printk("%s: _PAGE_KERNEL: 0x%lx\n", __func__, prot_val);
+printk("%s: _PAGE_IO: 0x%lx\n", __func__, _PAGE_IO);
+printk("%s: _PAGE_NOCACHE: 0x%lx\n", __func__, _PAGE_NOCACHE);
+
 	if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX))
 		set_kernel_memory(lm_alias(__init_begin), lm_alias(__init_end),
 				  IS_ENABLED(CONFIG_64BIT) ?
