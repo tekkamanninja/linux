@@ -224,6 +224,8 @@ static bool cpufeature_svpbmt_check_func(unsigned int stage)
 
 #if defined(CONFIG_MMU) && defined(CONFIG_64BIT)
 	switch (stage) {
+	case RISCV_ALTERNATIVES_EARLY_BOOT:
+		return false;
 	case RISCV_ALTERNATIVES_BOOT:
 		return cpufeature_svpbmt_check_fdt();
 	default:
