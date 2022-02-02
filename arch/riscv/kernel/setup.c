@@ -325,8 +325,8 @@ void free_initmem(void)
 printk("%s: _PAGE_KERNEL-orig: 0x%lx\n", __func__, prot_val);
 	ALT_THEAD_PMA(prot_val);
 printk("%s: _PAGE_KERNEL: 0x%lx\n", __func__, prot_val);
-printk("%s: _PAGE_IO: 0x%lx\n", __func__, _PAGE_IO);
-printk("%s: _PAGE_NOCACHE: 0x%lx\n", __func__, _PAGE_NOCACHE);
+printk("%s: _PAGE_IO: 0x%llx\n", __func__, _PAGE_IO);
+printk("%s: _PAGE_NOCACHE: 0x%llx\n", __func__, _PAGE_NOCACHE);
 
 	if (IS_ENABLED(CONFIG_STRICT_KERNEL_RWX))
 		set_kernel_memory(lm_alias(__init_begin), lm_alias(__init_end),
