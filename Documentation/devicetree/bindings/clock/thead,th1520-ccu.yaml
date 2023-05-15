@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: GPL-2.0
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/clock/thead,th1520-ccu.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: T-HEAD Clock Control Unit
+
+maintainers:
+  - Jisheng Zhang <jszhang@kernel.org>
+  - Wei Fu <wefu@redhat.com>
+  - Yangtao Li <frank.li@vivo.com>
+
+
+properties:
+  "#clock-cells":
+    const: 1
+
+  "#reset-cells":
+    const: 1
+
+  compatible:
+    enum:
+      - thead,th1520-ccu
+
+  reg:
+    maxItems: 1
+
+  clocks:
+    const: 2
+    items:
+      - description: High Frequency Oscillator (usually at 24MHz)
+      - description: Low Frequency Oscillator (usually at 32kHz)
+
+  clock-names:
+    const: 2
+    items:
+      - const: hosc
+      - const: losc
+
+required:
+  - "#clock-cells"
+  - compatible
+  - reg
+  - clocks
+  - clock-names
+
+additionalProperties: false
+
+examples:
+  - |
+    clk: clock-controller@ffef010000 {
+      compatible = "thead,th1520-ccu";
+      reg = <0xff 0xef010000 0x0 0x1000>;
+      clocks = <&osc32k>, <&osc24m>;
+      clock-names = "losc", "hosc";
+      #clock-cells = <1>;
+    };
+
+...
