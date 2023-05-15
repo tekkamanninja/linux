@@ -18673,14 +18673,17 @@ F:	drivers/perf/riscv_pmu.c
 F:	drivers/perf/riscv_pmu_legacy.c
 F:	drivers/perf/riscv_pmu_sbi.c
 
-RISC-V THEAD SoC SUPPORT
+RISC-V T-HEAD SOC SUPPORT
 M:	Jisheng Zhang <jszhang@kernel.org>
 M:	Guo Ren <guoren@kernel.org>
 M:	Fu Wei <wefu@redhat.com>
+M:	Yangtao Li <frank.li@vivo.com>
 L:	linux-riscv@lists.infradead.org
 S:	Maintained
 F:	arch/riscv/boot/dts/thead/
+F:	drivers/clk/clk-th1520.c
 F:	drivers/usb/dwc3/dwc3-thead.c
+F:	include/dt-bindings/clock/th1520-clock.h
 
 RNBD BLOCK DRIVERS
 M:	Md. Haris Iqbal <haris.iqbal@ionos.com>
