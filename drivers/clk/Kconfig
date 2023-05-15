@@ -476,6 +476,12 @@ config COMMON_CLK_SP7021
 	  Not all features of the PLL are currently supported
 	  by the driver.
 
+config COMMON_CLK_THEAD
+	tristate "Clock driver for TH1520 SoC"
+	depends on ARCH_THEAD || COMPILE_TEST
+	help
+	  Support for the T-HEAD TH1520 RISC-V SoC clocks.
+
 source "drivers/clk/actions/Kconfig"
 source "drivers/clk/analogbits/Kconfig"
 source "drivers/clk/baikal-t1/Kconfig"
