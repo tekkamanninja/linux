@@ -19324,6 +19324,7 @@ L:	linux-riscv@lists.infradead.org
 S:	Maintained
 F:	arch/riscv/boot/dts/thead/
 F:	drivers/usb/dwc3/dwc3-thead.c
+F:	include/dt-bindings/clock/thead,th1520-clk.h
 
 RNBD BLOCK DRIVERS
 M:	Md. Haris Iqbal <haris.iqbal@ionos.com>
