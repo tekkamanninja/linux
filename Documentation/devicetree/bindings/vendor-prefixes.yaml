@@ -1460,6 +1460,8 @@ patternProperties:
     description: Three Five Corp
   "^thead,.*":
     description: T-Head Semiconductor Co., Ltd.
+  "^xuantie,.*":
+    description: XuanTie of Alibaba DAMO Academy (hangzhou) technology co. ltd
   "^thine,.*":
     description: THine Electronics, Inc.
   "^thingyjp,.*":
