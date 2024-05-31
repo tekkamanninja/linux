@@ -160,6 +160,12 @@
 		#clock-cells = <0>;
 	};
 
+	efuse_clk: efuse-clock {
+		compatible = "fixed-clock";
+		clock-output-names = "efuse_clk";
+		#clock-cells = <0>;
+	};
+
 	soc {
 		compatible = "simple-bus";
 		interrupt-parent = <&plic>;
@@ -190,6 +196,28 @@
 					      <&cpu3_intc 3>, <&cpu3_intc 7>;
 		};
 
+		secsys_reg: secsys-reg@ffff200000 {
+			compatible = "syscon";
+			reg = <0xff 0xff200000 0x0 0x10000>;
+		};
+
+		nvmem_controller: efuse@ffff210000 {
+			compatible = "xuantie,th1520-efuse", "syscon";
+			reg = <0xff 0xff210000 0x0 0x10000>;
+			xuantie,secsys = <&secsys_reg>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			clocks = <&efuse_clk>;
+			clock-names = "pclk";
+
+			gmac0_mac_address: mac-address@176 {
+				reg = <0xb0 6>;
+			};
+
+			gmac1_mac_address: mac-address@184 {
+				reg = <0xb8 6>;
+			};
+		};
 		uart0: serial@ffe7014000 {
 			compatible = "snps,dw-apb-uart";
 			reg = <0xff 0xe7014000 0x0 0x100>;
